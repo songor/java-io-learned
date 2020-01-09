@@ -44,6 +44,24 @@
 
     io/com.io.bio.BioServer
 
+* 非阻塞 IO
+
+  * Socket 数据报文示例
+
+    ![Figure 6.2](https://github.com/songor/java-io-learned/blob/master/capture/Figure%206.2.png?raw=true)
+
+  * 描述
+
+    Socket 设置为 NONBLOCK（非阻塞）就是告诉内核，当所请求的 IO 操作无法满足时，不要将用户进程挂起，而是返回一个错误码（EWOULDBLOCK）。从用户进程的角度讲，它发起一个 recvfrom 系统调用后，并不需要等待，而是马上就得到一个结果。
+
+    在 IO 执行的第二个阶段用户进程被阻塞了。
+
+    用户进程需要不断地主动询问 Kernal 数据准备好了没有。
+
+  * 问题
+
+    不断地轮询消耗大量的 CPU 资源。
+
 * 
 
 ### Java IO 模型
