@@ -100,6 +100,18 @@
 
     io/com.io.nio.NioServer
 
+* 信号驱动 IO
+
+  * Socket 数据报文示例
+
+    ![Figure 6.4](https://github.com/songor/java-io-learned/blob/master/capture/Figure%206.4.png?raw=true)
+
+  * 描述
+
+    进程预先告知内核，向内核注册一个信号处理函数（establish SIGIO signal handler），然后进程继续运行并不阻塞。当内核数据准备好时，进程会收到一个 SIGIO 信号，可以在信号处理函数中调用 recvfrom 系统调用读取数据。
+
+    将数据从内核拷贝到进程中的过程还是阻塞的。
+
 * 
 
 ### Java IO 模型
