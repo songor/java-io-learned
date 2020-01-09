@@ -112,6 +112,22 @@
 
     将数据从内核拷贝到进程中的过程还是阻塞的。
 
+* 异步 IO
+
+  * Socket 数据报文示例
+
+    ![Figure 6.5](https://github.com/songor/java-io-learned/blob/master/capture/Figure%206.5.png?raw=true)
+
+  * 描述
+
+    告诉内核执行系统调用（aio_read），并让内核在整个操作完成后通知进程。
+
+    信号驱动 IO 模型是内核通知我们何时可以执行系统调用，异步 IO 模型是内核告诉进程 IO 何时完成。
+
+  * 代码
+
+    io/com.io.aio.AioServer
+
 * 
 
 ### Java IO 模型
@@ -205,7 +221,7 @@
 
       * ServerSocketChannel
 
-        io/com.io.nioServerSocketChannelDemo
+        io/com.io.nio.ServerSocketChannelDemo
 
     * Selectors
 
@@ -245,5 +261,194 @@
         已经就绪事件集合 `key.readyOps()`。
 
         从 SelectionKey 访问 Channel `key.channel()`  和 Selector `key.selector()`。
+
+* AIO
+
+  * Path
+
+    Path 通常代表文件系统中的位置，你所创建和处理的 Path 可以不马上绑定到对应的物理位置上，JVM 只会把 Path 绑定到运行时的物理位置上。Path 并不仅限于传统的文件系统，它也能表示 zip 或 jar 这样的文件系统。
+
+    * 创建一个 Path
+
+      在 NIO.2 的 API 中，Path 和 Paths 中的各种方法抛出的受检异常只有 IOException。
+
+      创建 Path 时可以用相对路径，通过调用 toAbsolutePath() 方法，很容易把这个相对路径转换成绝对路径。
+
+      ```java
+      Path path = Paths.get(str);
+      ```
+
+    * 从 Path 中获取信息
+
+      ```java
+      System.out.println("File Name [" + path.getFileName() + "]");
+      System.out.println("Number of Name Elements in the Path [" + path.getNameCount() + "]");
+      System.out.println("Parent Path [" + path.getParent() + "]");
+      System.out.println("Root of Path [" + path.getRoot() + "]");
+      System.out.println("Subpath from Root, 2 elements deep [" + path.subpath(0, 2) + "]");
+      ```
+
+    * 移除冗余项
+
+      需要处理的 Path 中可能会有一个或两个点，. 表示当前目录，.. 表示父目录。
+
+      normalize() 方法去掉 Path 中的冗余信息。
+
+      ```java
+      Path normalizedPath = Paths.get("./PathDemo.java").normalize();
+      ```
+
+      此外，toRealPath() 方法也很有效，它融合了 toAbsolutePath() 和 normalize() 两个方法的功能，还能检测并跟随符号连接。
+
+    * 转换 Path
+
+      通过调用 resolve 方法，将 /uat/ 和 conf/application.properties 合并成表示 /uat/conf/application.properties 的完整 Path。
+
+      ```java
+      Path prefix = Paths.get("/uat/");
+      Path completePath = prefix.resolve("conf/application.properties");
+      ```
+
+      取得两个 Path 之间的路径，可以用 relativize( Path path) 方法。
+
+      可以使用 startsWith(Path prefix)，endsWith(Path suffix)，equals(Path path) 来对路径进行比较。
+
+    * NIO.2 Path 和 Java 已有的 File 类
+
+      java.io.File 类中新增了 toPath() 方法，它可以马上把已有的 File 转化为新的 Path。
+
+      Path 类中有一个 toFile() 方法，它可以马上把已有的 Path 转化为 File。
+
+  * Files
+
+    * 处理目录和目录树
+
+      io/com.io.aio.DirectoryStreamDemo
+
+    * 创建和删除文件
+
+      通常出于安全考虑，要定义所创建的文件是用于读、写、执行，或三者权限的某种组合时，你要指明该文件的某些 FileAttributes。因为这取决于文件系统，所以需要使用与文件系统相关的文件权限类（*FilePermission 类）。
+
+      ```java
+      Path source = Paths.get("tmp.txt");
+      // Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rw-rw-rw-");
+      // FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(perms);
+      // Files.createFile(source, attr);
+      Files.createFile(source);
+      System.out.println("File [" + source.getFileName() + "] exists: " + Files.exists(source));
+      
+      Files.delete(source);
+      ```
+
+    * 文件的复制和移动
+
+      ```java
+      import static java.nio.file.StandardCopyOption.*;
+      
+      Path target = Paths.get("copy.txt");
+      Files.copy(source, target, REPLACE_EXISTING);
+      System.out.println("File [" + target.getFileName() + "] exists: " + Files.exists(target));
+      
+      Files.move(source, target, COPY_ATTRIBUTES, COPY_ATTRIBUTES);
+      ```
+
+    * 文件的属性
+
+      文件的属性控制着谁能对文件做什么。一般情况下，做什么许可包括能够读取、写入或执行文件，而由谁许可包括属主、群组或所有人。
+
+      ```java
+      // 基本文件属性支持
+      Path path = Paths.get("attributes.txt");
+      Files.getLastModifiedTime(path);
+      Files.size(path);
+      Files.isSymbolicLink(path);
+      Files.isDirectory(path);
+      Files.readAttributes(path, "*");
+      ```
+
+      ```java
+      // 特定文件属性支持
+      import static java.nio.file.attribute.PosixFilePermission.*;
+      
+      Path profile = Paths.get("/user/.profile");
+      PosixFileAttributes attrs = Files.readAttributes(profile, PosixFileAttributes.class);
+      Set<PosixFilePermission> perms = attrs.permissions();
+      // 清除已有的许可
+      perms.clear();
+      // 为文件添加新的许可访问
+      perms.add(OWNER_READ);
+      perms.add(GROUP_READ);
+      perms.add(OTHERS_READ);
+      perms.add(OTHERS_WRITE);
+      Files.setPosixFilePermissions(profile, perms);
+      ```
+
+    * 符号链接
+
+      可以把符号链接看做指向另一个文件或目录的入口。
+
+      NIO.2 API 默认会跟随符号链接。如果不想跟随，需要用 `LinkOption.NOFOLLOW_LINKS` 选项。
+
+      ```java
+      Path file = Paths.get("/opt/platform/java");
+      // 读取符号链接本身的基本文件属性
+      Files.readAttributes(file, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+      if (Files.isSymbolicLink(file)) {
+          file = Files.readSymbolicLink(file);
+      }
+      Files.readAttributes(file, BasicFileAttributes.class);
+      ```
+
+    * 快速读写数据
+
+      ```java
+      try (BufferedWriter writer = Files.newBufferedWriter(source, StandardCharsets.UTF_8, StandardOpenOption.WRITE)) {
+          writer.write("Hello World");
+      }
+      
+      try (BufferedReader reader = Files.newBufferedReader(source, StandardCharsets.UTF_8)) {
+          String line;
+          while ((line = reader.readLine()) != null) {
+              System.out.println("Reader: " + line);
+          }
+      }
+      
+      Files.readAllLines(source, StandardCharsets.UTF_8);
+      Files.readAllBytes(source);
+      ```
+
+    * 文件修改通知
+
+      可以用 java.nio.file.WatchService 类监测文件或目录的变化。该类用客户线程监视注册文件或目录的变化，并且在检测到变化时返回一个事件。这种事件通知对于安全监测、属性文件中的数据刷新等很多用例都很有用。是现在某些应用程序中常用的轮询机制（相对而言性能较差）的理想替代品。
+
+      io/com.io.aio.WatchServiceDemo
+
+    * SeekableByteChannel
+
+      Java 7 引入 SeekableByteChannel 接口，是为了让开发人员能够改变字节通道的位置和大小。
+
+      ```java
+      Path log = Paths.get("tmp.log");
+      ByteBuffer buffer = ByteBuffer.allocate(1024);
+      FileChannel channel = FileChannel.open(log, StandardOpenOption.READ);
+      // 读取日志文件最后 50 个字符
+      channel.read(buffer, channel.size() - 50);
+      ```
+
+  * 异步 IO 操作
+
+    Java 7 中有三个新的异步通道：AsynchronousFileChannel（用于文件 IO），AsynchronousSocketChannel（用于套接字 IO，支持超时），AsynchronousServerSocketChannel（用于套接字接受异步连接）。使用新的异步 IO API 时，主要有两种形式，将来式和回调式。
+
+    * 将来式
+
+      当你希望由主控线程发起 IO 操作并轮询等待结果时，一般都会用将来式异步处理。
+
+    * 回调式
+
+      主线程会派一个侦查员 CompletionHandler 到独立的线程中执行 IO 操作。这个侦查员将带着 IO 操作的结果返回到主线程中，这个结果会触发它自己的 completed 或 failed 方法。
+
+      在异步事件刚一成功或失败并需要马上采取行动时，一般会用回调式。
+
+      io/com.io.aio.AsyncDemo
 
 * 
