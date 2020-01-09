@@ -1,4 +1,4 @@
-package com.io.bio;
+package com.io;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -30,7 +30,7 @@ public class Client {
                 Thread.sleep((new Random().nextInt(6) + 5) * 1000);
                 // 获取输出流
                 socket.getOutputStream().write(prepareBytes());
-                Thread.sleep(1000);
+                Thread.sleep(2000);
                 socket.close();
             } catch (IOException e) {
                 e.printStackTrace();

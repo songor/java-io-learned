@@ -40,7 +40,7 @@
 
   * 代码
 
-    io/com.io.bio.Client
+    io/com.io.Client
 
     io/com.io.bio.BioServer
 
@@ -61,6 +61,44 @@
   * 问题
 
     不断地轮询消耗大量的 CPU 资源。
+
+* 多路复用 IO
+
+  * Socket 数据报文示例
+
+    ![Figure 3](https://github.com/songor/java-io-learned/blob/master/capture/Figure%206.3.png?raw=true)
+
+  * 描述
+
+    多个进程的 IO 可以注册到一个 select 上，当用户进程调用该 select，select 会监听所有注册进来的 IO，如果 select 所监听的 IO 在内核缓冲区都没有可读数据，select 调用进程会被阻塞。而当任一 IO 在内存缓冲区有可读数据时，select 调用就会返回，而后 select 调用进程可以自己或通知注册的进程再次发起 recvfrom 系统调用，读取内核中准备好的数据。多个进程注册 IO 后，只有一个 select 调用进程被阻塞。 
+
+    多路复用 IO 模型和阻塞 IO 模型并没有太大的不同，事实上，还更差一些，因为需要使用两个系统调用 select 和 recvfrom，而阻塞 IO 只有一次系统调用 recvfrom。但是，使用 select 最大的优势是可以在一个进程内处理多个 IO（等待数据准备），而在阻塞 IO 模型中，必须通过多进程的方式才能达到这个目的。
+
+    在多路复用 IO 模型中，对于每个 Socket，一般都设置为非阻塞。如上图所示，用户的进程其实是一直被阻塞的，只不过进程是被 select 这个函数阻塞，而不是被 IO 给阻塞。
+
+    select/poll 是顺序扫描 fd 是否就绪，而且支持的 fd 数量有限，因此它的使用受到一些制约（比如 select 限制 fd 为 1024）。epoll 使用基于事件驱动方式替代顺序扫描，因此性能更高。
+
+  * 问题
+
+    多路复用 IO 模型是通过轮询的方式来检测是否有事件（readable）到达，并且对到达的事件逐一进行响应。一旦事件响应体很大，就会导致后续的事件迟迟得不到处理，并且会影响新的事件轮询。
+
+  * 举例
+
+    专门设立一个“跑腿”服务员，工作职责单一，就是问问客人是否需要服务。
+
+    站在门口接待客人，本来是“大堂经理”的工作，但是他不愿意在门口盯着，于是就委托给“跑腿”服务员，你帮我盯着，有人来了告诉我。于是“跑腿”服务员就有了一个任务，替“大堂经理”盯梢（OP_ACCEPT）。终于来客人了，“跑腿”服务员赶紧告诉“大堂经理”。
+
+    “大堂经理”把客人带到座位上，对“跑腿”服务员说，客人接下来肯定是要点餐的，但是现在在看菜单，不知道什么时候能看好，所以你不时地过来问问，看需不需要点餐，需要的话就再喊一个“点餐”服务员给客人写菜单。于是“跑腿”就又多了一个任务，就是盯着这桌客人，不时地来问问，如果需要服务的话，就叫“点餐”服务员过来服务（OP_READ）。
+
+    “跑腿”服务员在某次询问中，客人终于决定点餐了，“跑腿”服务员赶紧找来一个“点餐”服务员为客人写菜单。
+
+    就这样，“跑腿”服务员既要盯着门外新过来的客人，也要盯着门内已经就坐的客人。新客人来了，通知“大堂经理”去接待。就坐的客人决定点餐了，通知“点餐”服务员去写菜单。
+
+  * 代码
+
+    io/com.io.Client
+
+    io/com.io.nio.NioServer
 
 * 
 
@@ -95,5 +133,105 @@
     * 适配器模式与装饰器模式的区别
 
       适配器与装饰器模式都有一个别名就是包装模式（Wrapper），它们看似都是起到包装一个类或对象的作用，但是使用它们的目的很不一样。适配器模式的意义是要将一个接口转变成另外一个接口，它的目的是通过改变接口来达到重复使用的目的；而装饰器模式不是要改变被装饰对象的接口，而是恰恰要保持原有的接口，但是增强原有对象的功能，或者改变原有对象的处理方法而提升性能。
+
+* NIO
+
+  * 特性
+
+    * Non-blocking IO
+
+    * Channels and Buffers
+
+      标准的 IO 编程接口是面向字节流和字符流的，而 NIO 是面向 Channel 和 Buffer 的。数据总是从 Channel 读到 Buffer，或者从 Buffer 写入 Channel。
+
+    * Selectors
+
+      Selector 是一个可以用于监视多个通道的对象，因此单线程可以监视多个通道中的数据，相比使用多个线程，避免了线程上下文切换带来的开销。
+
+  * 核心组件
+
+    * Buffer
+
+      可以把 Buffer 简单地理解为一组基本数据类型的元素列表。
+
+      ByteBuffer，CharBuffer，ShortBuffer，IntBuffer，FloatBuffer，DoubleBuffer，LongBuffer
+
+      | 索引     | 说明                                           |
+      | :------- | ---------------------------------------------- |
+      | capacity | 缓冲区数组的总长度                             |
+      | position | 下一个要操作的数据元素的位置                   |
+      | limit    | 缓冲区数据中不可操作的下一个元素的位置         |
+      | mark     | 用于记录当前 position 的前一个位置或者默认是 0 |
+
+      Buffer 提供了另外一种直接操作操作系统缓冲区的方式，即 `ByteBuffer.allocateDirect(size)` ，这个方法返回的 `DirectByteBuffer` 就是与底层存储空间关联的缓冲区，它通过 Native 代码操作非 JVM 堆的内存空间。每次创建或者释放的时候都调用一个 `System.gc()`。
+
+      io/com.io.nio.BufferDemo
+
+    * Channel
+
+      FileChannel，DatagramChannel，SocketChannel，ServerSocketChannel
+
+      * Channel 和 Stream
+
+        Channel 可以读也可以写，Stream 一般来说是单向的（只能读或者写，所以之前我们用流进行 IO 操作的时候需要分别创建一个输入流和一个输出流）。
+
+        Channel 可以异步读写。
+
+        Channel 总是基于 Buffer 来读写。
+        
+      * FileChannel
+
+        io/com.io.nio.FileChannelDemo
+
+        FileChannel.transferXXX 与传统的访问文件方式相比可以减少数据从内核到用户空间的复制，数据直接在内核空间中移动，在 Linux 中使用 sendfile 系统调用。
+
+        FileChannel.map 将文件按照一定大小块映射为内存区域，当程序访问这个内存区域时将直接操作这个文件数据，这种方式省去了数据从内核空间向用户空间复制的损耗。这种方式适合对大文件的只读性操作，如大文件的 MD5 校验。
+
+      * SocketChannel
+
+        io/com.io.nio.SocketChannelDemo
+
+      * ServerSocketChannel
+
+        io/com.io.nioServerSocketChannelDemo
+
+    * Selectors
+
+      Selector 一般称为选择器或多路复用器，用于检查一个或多个 Channel 的状态，如此可以实现单线程管理多个 Channel。
+
+      * Selector 创建
+
+        ```java
+        Selector selector = Selector.open();
+        ```
+
+      * 注册 Channel 到 Selector
+
+        ```java
+        ServerSocketChannel ssc = ServerSocketChannel.open();
+        // Channel 必须是非阻塞的
+        ssc.configureBlocking(false);
+        ssc.socket().bind(new InetSocketAddress("localhost", 8080));
+        ssc.register(selector, SelectionKey.OP_ACCEPT);
+        ```
+
+      * Selector 监听 Channel 触发事件
+
+        |        事件         |   SelectionKey 常量    |
+        | :-----------------: | :--------------------: |
+        | Connect（连接就绪） | SelectionKey.OP_ACCEPT |
+        | Accept（接收就绪）  | SelectionKey.OP_ACCEPT |
+        |   Read（读就绪）    |  SelectionKey.OP_READ  |
+        |   Write（写就绪）   | SelectionKey.OP_WRITE  |
+
+      * SelectionKey
+
+        SelectionKey 表示了一个特定的 Channel 和一个特定的 Selector 之间的注册关系。
+
+        感兴趣事件集合 `key.interestOps()`。
+
+        已经就绪事件集合 `key.readyOps()`。
+
+        从 SelectionKey 访问 Channel `key.channel()`  和 Selector `key.selector()`。
 
 * 
