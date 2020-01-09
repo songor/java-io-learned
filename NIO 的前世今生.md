@@ -1,5 +1,19 @@
 # NIO 的前世今生
 
+* 网络模型
+
+  * BIO 网络模型
+
+    ![BIO 网络模型](https://github.com/songor/java-io-learned/blob/master/capture/BIO%20%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B.PNG?raw=true)
+
+    ![BIO 网络模型伪异步](https://github.com/songor/java-io-learned/blob/master/capture/BIO%20%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E4%BC%AA%E5%BC%82%E6%AD%A5.PNG?raw=true)
+
+  * NIO 网络模型
+
+    ![NIO 网络模型猜想](https://github.com/songor/java-io-learned/blob/master/capture/NIO%20%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E7%8C%9C%E6%83%B3.PNG?raw=true)
+
+    ![NIO 网络模型](https://github.com/songor/java-io-learned/blob/master/capture/NIO%20%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B.PNG?raw=true)
+
 * NIO 核心
 
   * Channel - 通道
@@ -102,10 +116,22 @@
 
 * NIO 编程实现步骤
   * 创建 Selector
+  
   * 创建 ServerSocketChannel，并绑定监听端口
+  
   * 将 Channel 设置为非阻塞模式
+  
   * 将 Channel 注册到 Selector 上，监听连接事件
+  
   * 循环调用 Selector 的 select 方法，检测就绪情况
+  
   * 调用 selectedKeys 方法获取就绪 channel 集合
+  
   * 判断就绪事件种类，调用业务处理方法
+  
   * 根据业务需要决定是否再次注册监听事件，重复第三步
+  
+* 代码
+
+  nio-chart-room
+
