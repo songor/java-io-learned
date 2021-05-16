@@ -20,7 +20,7 @@
 
   * Socket 数据报文示例
 
-    ![Figure 6.1](https://github.com/songor/java-io-learned/blob/master/capture/Figure%206.1.png?raw=true)
+    ![Figure 6.1](capture/Figure 6.1.png)
 
   * 描述
 
@@ -48,7 +48,7 @@
 
   * Socket 数据报文示例
 
-    ![Figure 6.2](https://github.com/songor/java-io-learned/blob/master/capture/Figure%206.2.png?raw=true)
+    ![Figure 6.2](capture/Figure 6.2.png)
 
   * 描述
 
@@ -66,7 +66,7 @@
 
   * Socket 数据报文示例
 
-    ![Figure 3](https://github.com/songor/java-io-learned/blob/master/capture/Figure%206.3.png?raw=true)
+    ![Figure 3](capture/Figure 6.3.png)
 
   * 描述
 
@@ -104,7 +104,7 @@
 
   * Socket 数据报文示例
 
-    ![Figure 6.4](https://github.com/songor/java-io-learned/blob/master/capture/Figure%206.4.png?raw=true)
+    ![Figure 6.4](capture/Figure 6.4.png)
 
   * 描述
 
@@ -116,7 +116,7 @@
 
   * Socket 数据报文示例
 
-    ![Figure 6.5](https://github.com/songor/java-io-learned/blob/master/capture/Figure%206.5.png?raw=true)
+    ![Figure 6.5](capture/Figure 6.5.png)
 
   * 描述
 
@@ -130,7 +130,7 @@
 
 * IO 模型比较
 
-  ![Figure 6.6](https://github.com/songor/java-io-learned/blob/master/capture/Figure%206.6.png?raw=true)
+  ![Figure 6.6](capture/Figure 6.6.png)
 
 ### Java IO 模型
 

@@ -4,15 +4,15 @@
 
   * BIO 网络模型
 
-    ![BIO 网络模型](https://github.com/songor/java-io-learned/blob/master/capture/BIO%20%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B.PNG?raw=true)
+    ![BIO 网络模型](capture/BIO 网络模型.PNG)
 
-    ![BIO 网络模型伪异步](https://github.com/songor/java-io-learned/blob/master/capture/BIO%20%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E4%BC%AA%E5%BC%82%E6%AD%A5.PNG?raw=true)
+    ![BIO 网络模型伪异步](capture/BIO 网络模型伪异步.PNG)
 
   * NIO 网络模型
 
-    ![NIO 网络模型猜想](https://github.com/songor/java-io-learned/blob/master/capture/NIO%20%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E7%8C%9C%E6%83%B3.PNG?raw=true)
+    ![NIO 网络模型猜想](capture/NIO 网络模型猜想.PNG)
 
-    ![NIO 网络模型](https://github.com/songor/java-io-learned/blob/master/capture/NIO%20%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B.PNG?raw=true)
+    ![NIO 网络模型](capture/NIO 网络模型.PNG)
 
 * NIO 核心
 
@@ -70,31 +70,31 @@
 
       ByteBuffer.allocate(10); // 初始化长度为 10 的 byte 类型 buffer
 
-      ![ByteBuffer_1](https://github.com/songor/java-io-learned/blob/master/capture/ByteBuffer_1.PNG?raw=true)
+      ![ByteBuffer_1](capture/ByteBuffer_1.PNG)
 
       byteBuffer.put("abc".getByte(Charset.forName("UTF-8"))); // 向 byteBuffer 中写入三个字节
 
-      ![ByteBuffer_2](https://github.com/songor/java-io-learned/blob/master/capture/ByteBuffer_2.PNG?raw=true)
+      ![ByteBuffer_2](capture/ByteBuffer_2.PNG)
 
       byteBuffer.flip(); // 将 byteBuffer 从写模式切换到读模式
 
-      ![ByteBuffer_3](https://github.com/songor/java-io-learned/blob/master/capture/ByteBuffer_3.PNG?raw=true)
+      ![ByteBuffer_3](capture/ByteBuffer_3.PNG)
 
       byteBuffer.get(); // 从 byteBuffer 中读取一个字节
       
-      ![ByteBuffer_4](https://github.com/songor/java-io-learned/blob/master/capture/ByteBuffer_4.PNG?raw=true)
+      ![ByteBuffer_4](capture/ByteBuffer_4.PNG)
       
       byteBuffer.mark(); // 调用 mark 方法记录当前 position 的位置
       
-      ![ByteBuffer_5](https://github.com/songor/java-io-learned/blob/master/capture/ByteBuffer_5.PNG?raw=true)
+      ![ByteBuffer_5](capture/ByteBuffer_5.PNG)
       
       byteBuffer.reset(); // 调用 reset 方法将 position 重置到 mark 位置
       
-      ![ByteBuffer_6](https://github.com/songor/java-io-learned/blob/master/capture/ByteBuffer_6.PNG?raw=true)
+      ![ByteBuffer_6](capture/ByteBuffer_6.PNG)
       
       byteBuffer.clear(); // 将所有属性重置
       
-      ![ByteBuffer_7](https://github.com/songor/java-io-learned/blob/master/capture/ByteBuffer_7.PNG?raw=true)
+      ![ByteBuffer_7](capture/ByteBuffer_7.PNG)
 
   * Selector - 选择器 或 多路复用器
 
